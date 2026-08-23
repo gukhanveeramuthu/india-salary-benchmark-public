@@ -1,0 +1,61 @@
+Load report: read=11379 loaded=11348 skipped_missing_salary=0 skipped_invalid_field=0 duplicates_removed=31
+
+Query: Android Developer | EN | INR | user salary $9,000
+Cohort (fallback level 4): "Android Developer" · experience-level requirement dropped (insufficient data at EN) · IN
+Sample size: n=362  ->  Confidence: High
+  P10=$1,692  P25=$3,207  P50=$6,108  P75=$10,804  P90=$17,816
+  User's estimated percentile: 67.1th
+  Provenance: {'n': 362, 'sources': {'glassdoor_india_2022': 362}, 'year_range': '2022-2022'}
+----------------------------------------------------------------------------------------------------
+Query: Data Scientist | EN | INR | user salary $22,000
+Cohort (fallback level 1): "Data Scientist" · EN · INR_domestic · IN
+Sample size: n=9  ->  Confidence: Insufficient
+  Not enough comparable data to show percentile bands.
+  Provenance: {'n': 9, 'sources': {'leetcode_compensations_india': 5, 'ai_jobs_net_survey': 4}, 'year_range': '2021-2025'}
+----------------------------------------------------------------------------------------------------
+Query: Data Scientist | EN | INR | Bengaluru | user salary $22,000
+Cohort (fallback level 1): "Data Scientist" · EN · INR_domestic · Bengaluru
+Sample size: n=4  ->  Confidence: Insufficient
+  Not enough comparable data to show percentile bands.
+  Provenance: {'n': 4, 'sources': {'leetcode_compensations_india': 4}, 'year_range': '2022-2025'}
+----------------------------------------------------------------------------------------------------
+Query: Data Scientist | EN | INR | Kochi | user salary $22,000
+Cohort (fallback level 2): "Data Scientist" · EN · INR_domestic · IN (no Kochi-specific data — showing all of IN)
+Sample size: n=9  ->  Confidence: Insufficient
+  Not enough comparable data to show percentile bands.
+  Provenance: {'n': 9, 'sources': {'leetcode_compensations_india': 5, 'ai_jobs_net_survey': 4}, 'year_range': '2021-2025'}
+----------------------------------------------------------------------------------------------------
+Query: Data Scientist | MI | INR | user salary $25,000
+Cohort (fallback level 1): "Data Scientist" · MI · INR_domestic · IN
+Sample size: n=13  ->  Confidence: Low
+  P10=$17,438  P25=$21,228  P50=$33,808  P75=$40,161  P90=$50,829
+  User's estimated percentile: 30.8th
+  Provenance: {'n': 13, 'sources': {'leetcode_compensations_india': 4, 'ai_jobs_net_survey': 9}, 'year_range': '2020-2025'}
+----------------------------------------------------------------------------------------------------
+Query: Software Engineer | EN | INR | user salary $8,000
+Cohort (fallback level 1): "Software Engineer" · EN · INR_domestic · IN
+Sample size: n=45  ->  Confidence: Moderate
+  P10=$9,052  P25=$11,453  P50=$19,089  P75=$26,724  P90=$36,651
+  User's estimated percentile: 0.0th
+  Provenance: {'n': 45, 'sources': {'leetcode_compensations_india': 44, 'ai_jobs_net_survey': 1}, 'year_range': '2022-2024'}
+----------------------------------------------------------------------------------------------------
+Query: Lead Data Scientist | MI | INR | user salary $30,000
+Cohort (fallback level 3): "Lead Data Scientist" not found directly — broadened to the "Data Science" role family · MI · IN
+Sample size: n=22  ->  Confidence: Moderate
+  P10=$19,303  P25=$25,617  P50=$31,200  P75=$38,509  P90=$40,449
+  User's estimated percentile: 36.4th
+  Warning: This cohort mixes INR-paid and USD-paid observations (roughly a 1.8x median gap in past audits) - treat the comparison with caution.
+  Provenance: {'n': 22, 'sources': {'leetcode_compensations_india': 7, 'ai_jobs_net_survey': 15}, 'year_range': '2020-2025'}
+----------------------------------------------------------------------------------------------------
+Query: Product Manager | MI | INR | user salary $25,000
+Cohort (fallback level 2): "Product Manager" · MI · currency requirement relaxed · IN
+Sample size: n=2  ->  Confidence: Insufficient
+  Not enough comparable data to show percentile bands.
+  Provenance: {'n': 2, 'sources': {'ai_jobs_net_survey': 2}, 'year_range': '2024-2024'}
+----------------------------------------------------------------------------------------------------
+Query: Astronaut | SE | INR | user salary $50,000
+Cohort (fallback level 5): No comparable observations found for "Astronaut" in IN for this pay population.
+Sample size: n=0  ->  Confidence: Insufficient
+  Not enough comparable data to show percentile bands.
+  Provenance: {'n': 0, 'sources': {}, 'year_range': 'n/a'}
+----------------------------------------------------------------------------------------------------

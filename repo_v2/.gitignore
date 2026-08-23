@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.streamlit/secrets.toml
+.DS_Store
+.pytest_cache/
+
+# The raw dataset is private - see README.md "Keeping the source data
+# private". It's fetched at runtime from a separate private repo and is
+# never meant to be committed here. It's still present on disk locally
+# (for local dev / as the file you push to your private data repo), just
+# not tracked by git in this repo.
+data/india_salaries_deduped.csv
