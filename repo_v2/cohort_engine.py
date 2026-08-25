@@ -128,11 +128,27 @@ def _base_ladder(
                         + city_fallback_note,
         )
 
-    # Level (4 + offset): exact title, any experience level, any pay population.
-    level4 = [
-        o for o in country_filtered
-        if o.job_title_raw.strip().lower() == title_norm
-    ]
+    # Level (4 + offset): any experience level, any pay population. Broadens
+    # by role family when the title is recognized (taxonomy.py); falls back
+    # to exact title otherwise. The family branch matters for canonical
+    # group names (e.g. "QA Tester") that are real, reviewed taxonomy
+    # families but were never anyone's literal raw title - without it,
+    # this rung would be permanently unreachable for those titles, since
+    # they'd never have an exact-title match at any experience level either.
+    # For every title that IS its own literal raw data (the common case),
+    # role_family() includes the title itself as a family member (see
+    # taxonomy.py's self-reference), so this returns identical results to
+    # the old exact-title-only check - existing behaviour is preserved.
+    if family is not None:
+        level4 = [
+            o for o in country_filtered
+            if role_family(o.job_title_raw) == family
+        ]
+    else:
+        level4 = [
+            o for o in country_filtered
+            if o.job_title_raw.strip().lower() == title_norm
+        ]
     if level4:
         return CohortResult(
             level=4 + level_offset,

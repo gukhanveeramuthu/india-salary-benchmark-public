@@ -2,10 +2,10 @@ Load report: read=11379 loaded=11348 skipped_missing_salary=0 skipped_invalid_fi
 
 Query: Android Developer | EN | INR | user salary $9,000
 Cohort (fallback level 4): "Android Developer" · experience-level requirement dropped (insufficient data at EN) · IN
-Sample size: n=362  ->  Confidence: High
-  P10=$1,692  P25=$3,207  P50=$6,108  P75=$10,804  P90=$17,816
-  User's estimated percentile: 67.1th
-  Provenance: {'n': 362, 'sources': {'glassdoor_india_2022': 362}, 'year_range': '2022-2022'}
+Sample size: n=766  ->  Confidence: High
+  P10=$2,214  P25=$3,818  P50=$7,025  P75=$12,726  P90=$20,998
+  User's estimated percentile: 62.8th
+  Provenance: {'n': 766, 'sources': {'glassdoor_india_2022': 766}, 'year_range': '2022-2022'}
 ----------------------------------------------------------------------------------------------------
 Query: Data Scientist | EN | INR | user salary $22,000
 Cohort (fallback level 1): "Data Scientist" · EN · INR_domestic · IN

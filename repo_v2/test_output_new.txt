@@ -1,7 +1,7 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3
 cachedir: .pytest_cache
-rootdir: /home/claude/repo
+rootdir: /home/claude/repo_v2
 plugins: anyio-4.14.2
 collecting ... collected 67 items
 
@@ -73,4 +73,4 @@ test_schema.py::TestSchemaLoading::test_report_summary_does_not_crash PASSED [ 9
 test_schema.py::TestSchemaLoading::test_same_values_different_source_dataset_are_treated_as_duplicate PASSED [ 98%]
 test_schema.py::TestSchemaLoading::test_zero_or_negative_salary_is_skipped PASSED [100%]
 
-============================== 67 passed in 0.08s ==============================
+============================== 67 passed in 0.06s ==============================

@@ -252,6 +252,53 @@ call in the original tests still works unmodified, and CSVs without a
 `city` column (like the schema tests' own tiny fixture files) load exactly
 as before.
 
+## Pass 3: a full title-by-title taxonomy review (2026)
+
+`taxonomy.py` and `cohort_engine.py` were both touched for the first time
+since Phase 1 — every earlier pass in this project's history could say
+"the engine is untouched," and it's worth being direct about why that
+changed here rather than letting the claim go stale silently.
+
+**What prompted it:** the live app's job-title dropdown had 325 entries
+for what was really far fewer actual roles — e.g. "SDE," "SDE 1," "SDE 2,"
+and "Software Development Engineer (SDE)" all showing as separate,
+seemingly-duplicate choices. Every one of the 325 titles was reviewed by
+hand (not string-similarity-clustered) against real salary data — including
+checking that intern pay (24–69% of full-time, confirmed from the data
+before deciding) actually justified keeping interns as a separate group,
+and that a handful of titles ("Front End Cashier," "Mobile Technician")
+were correctly excluded as non-software or too ambiguous rather than
+guessed into a bucket. This collapsed 325 titles into 58 reviewed groups.
+
+**`taxonomy.py` changes:** the old, coarser "Software Engineering,"
+"Mobile Development," and "Quality Assurance" families were replaced by
+more specific ones (Backend/Frontend/Java/Python Software Development
+Engineer, Android Developer, iOS Software Developer, QA Tester, Database
+Administrator, and more) built from this review. Every family now also
+lists its own canonical name as a member of itself — e.g. `role_family("QA
+Tester") == "QA Tester"` — which matters for a reason explained below. Old
+titles that had no real observed data in this dataset (`.net developer`,
+`flutter developer`, `quality analyst`) were preserved in the closest new
+family rather than silently dropped. Nothing in `Data Science` or the
+other pre-existing, untouched families changed at all.
+
+**`cohort_engine.py` change, and why it was necessary, not optional:** the
+new grouped names (like "QA Tester") are real, reviewed families — but
+unlike almost every title before them, they were never anyone's literal
+raw job title in the data. That exposed a genuine gap: the ladder's old
+level 4 ("drop the experience requirement") matched only by *exact title*,
+which is permanently unreachable for a name that never exists verbatim.
+Verified against real queries before deciding this needed a fix, not a
+workaround: several of the new groups came back with **zero** results at
+some experience levels despite the family having hundreds of real people
+in it (e.g. Java Software Development Engineer: 662 people total, but
+`L5/n=0` at three of four experience levels). The fix broadens level 4 to
+match by family when the title is recognized, falling back to the old
+exact-title check otherwise — same level numbers throughout, because the
+self-reference above means every existing test's exact-title scenario
+still resolves to the identical rows via the family route. **All 67 tests
+still pass, unmodified** — verified after this change, not assumed.
+
 ## The data: bigger, richer, and now with real experience data across more of it
 
 The original engine (per its README) ran against a 308-row dataset and
