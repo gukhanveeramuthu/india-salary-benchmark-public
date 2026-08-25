@@ -17,6 +17,7 @@ from schema import EXPERIENCE_LABELS
 from benchmark import run_benchmark
 from confidence import INSUFFICIENT, LOW, MODERATE, HIGH
 from data_loader import load_dataset
+from taxonomy import ROLE_FAMILIES, role_family
 
 # FRED H.10 / AEXINUS annual-average USD/INR rate, most recent period in
 # the dataset (see data/README.md for the full cited table by year).
@@ -38,11 +39,63 @@ def load_data():
 
 
 @st.cache_data(show_spinner=False)
+def _deduped_titles(_observations):
+    """Case-insensitive-deduped title counts, shared by both the flat and
+    category-grouped pickers below. Case variants of the same title (e.g.
+    'SDE' vs 'Sde') are merged so they don't fragment one role's real
+    frequency or show up as visual duplicates."""
+    variants: dict[str, Counter] = {}
+    for o in _observations:
+        raw = o.job_title_raw.strip()
+        if not raw:
+            continue
+        variants.setdefault(raw.lower(), Counter())[raw] += 1
+
+    merged_counts = {key: sum(c.values()) for key, c in variants.items()}
+    display_form = {
+        key: max(c.items(), key=lambda kv: (kv[1], kv[0]))[0]
+        for key, c in variants.items()
+    }
+    ranked = sorted(merged_counts, key=lambda k: -merged_counts[k])
+    return merged_counts, display_form, ranked
+
+
+@st.cache_data(show_spinner=False)
 def title_options(_observations):
-    counts = Counter(o.job_title_raw.strip() for o in _observations if o.job_title_raw.strip())
-    # Most common titles first, so the dropdown surfaces titles that are
-    # actually likely to produce a real cohort.
-    return [t for t, _ in counts.most_common(300)]
+    """Flat, frequency-ranked title list ('Search all titles' mode) - the
+    top 300 by frequency, plus every taxonomy-recognized title regardless
+    of frequency (being rare is exactly when someone most needs to find a
+    role here rather than type it manually)."""
+    merged_counts, display_form, ranked = _deduped_titles(_observations)
+    top_keys = ranked[:300]
+
+    known_titles = {t for titles in ROLE_FAMILIES.values() for t in titles}
+    extra_known = [k for k in ranked if k in known_titles and k not in top_keys]
+
+    return [display_form[k] for k in top_keys + extra_known]
+
+
+@st.cache_data(show_spinner=False)
+def family_options(_observations):
+    """Groups every observed title the taxonomy recognizes by its role
+    family, e.g. all 20 'Software Engineering' variants (SDE, SDE 1/2,
+    Software Development Engineer, Backend Developer, ...) together,
+    instead of scattered across one 325-entry flat list. Returns
+    (family_names_sorted_by_size, {family_name: [titles sorted by freq]})."""
+    merged_counts, display_form, ranked = _deduped_titles(_observations)
+
+    grouped: dict[str, list[str]] = {}
+    for key in ranked:
+        fam = role_family(display_form[key])
+        if fam:
+            grouped.setdefault(fam, []).append(display_form[key])
+
+    family_totals = {
+        fam: sum(merged_counts[t.lower()] for t in titles)
+        for fam, titles in grouped.items()
+    }
+    family_names = sorted(grouped, key=lambda f: -family_totals[f])
+    return family_names, grouped, family_totals
 
 
 @st.cache_data(show_spinner=False)
@@ -146,21 +199,42 @@ st.caption(
     f"**{n_sources}** public sources · transparent methodology"
 )
 
+st.markdown('<div class="section-label">Your role</div>', unsafe_allow_html=True)
+family_names, grouped_titles, family_totals = family_options(observations)
+category_options = ["Search all titles"] + family_names
+
+def _format_category(c):
+    if c == "Search all titles":
+        return c
+    return f"{c} ({family_totals[c]:,} people)"
+
+role_col1, role_col2 = st.columns(2)
+with role_col1:
+    category = st.selectbox(
+        "Narrow by category (optional)",
+        category_options,
+        format_func=_format_category,
+        help="Many similar titles - e.g. SDE, SDE 1/2, Software Development "
+             "Engineer, Backend Developer - are really the same role family. "
+             "Pick a category to see just that family's titles instead of "
+             "all 300+ at once.",
+    )
+with role_col2:
+    if category == "Search all titles":
+        title_list = title_options(observations)
+    else:
+        title_list = grouped_titles[category]
+    title_choice = st.selectbox("Your title", ["Type my own…"] + title_list)
+
+if title_choice == "Type my own…":
+    job_title = st.text_input("Enter your job title", "")
+else:
+    job_title = title_choice
+
 with st.form("benchmark_form"):
     col1, col2 = st.columns(2)
 
     with col1:
-        title_choice = st.selectbox(
-            "Your role",
-            ["Type my own…"] + title_options(observations),
-            help="Pick the closest match, or type your own — an exact match isn't required, "
-                 "the engine will broaden the comparison automatically if needed.",
-        )
-        if title_choice == "Type my own…":
-            job_title = st.text_input("Enter your job title", "")
-        else:
-            job_title = title_choice
-
         experience_level = st.selectbox(
             "Experience",
             options=list(EXPERIENCE_LABELS.keys()),
