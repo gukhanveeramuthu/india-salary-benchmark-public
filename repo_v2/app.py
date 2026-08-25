@@ -15,7 +15,7 @@ import streamlit as st
 
 from schema import EXPERIENCE_LABELS
 from benchmark import run_benchmark
-from confidence import INSUFFICIENT, LOW, MODERATE, HIGH
+from confidence_tiers import INSUFFICIENT, LOW, MODERATE, HIGH
 from data_loader import load_dataset
 from taxonomy import ROLE_FAMILIES, role_family
 

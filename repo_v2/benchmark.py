@@ -12,7 +12,7 @@ from typing import Dict, List, Optional
 
 from schema import SalaryObservation, currency_segment
 from cohort_engine import find_cohort, CohortResult
-from confidence import confidence_for, INSUFFICIENT
+from confidence_tiers import confidence_for, INSUFFICIENT
 from percentile_engine import compute_bands, percentile_of_value, PercentileBands
 
 # This benchmark is India-scoped by design - every query is implicitly

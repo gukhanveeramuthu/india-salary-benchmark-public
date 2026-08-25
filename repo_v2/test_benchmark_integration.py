@@ -6,7 +6,7 @@ exactly which rows produced it.
 import unittest
 from schema import SalaryObservation, currency_segment
 from benchmark import run_benchmark
-from confidence import INSUFFICIENT, LOW
+from confidence_tiers import INSUFFICIENT, LOW
 
 
 def make_obs(job_title, experience_level, currency, salary_usd,
