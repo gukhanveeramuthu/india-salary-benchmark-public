@@ -54,14 +54,18 @@ def _provenance(cohort_observations: List[SalaryObservation]) -> Dict:
 def run_benchmark(
     observations: List[SalaryObservation],
     job_title: str,
-    experience_level: str,
+    experience_level: Optional[str],
     salary_currency: str,
     user_salary_in_usd: float,
     city: Optional[str] = None,
 ) -> BenchmarkResult:
-    """`city` is optional - omit it for the original country-wide ladder.
-    Pass it to additionally try a city-specific cohort first (see
-    cohort_engine.find_cohort for exactly how the fallback works)."""
+    """`experience_level` may be None to mean "any band" - pooling every
+    self-reported experience level together instead of requiring an exact
+    match. Useful for titles that are thin at any one band but have a
+    healthy population once pooled. `city` is optional - omit it for the
+    original country-wide ladder. Pass it to additionally try a
+    city-specific cohort first (see cohort_engine.find_cohort for exactly
+    how the fallback works)."""
     pay_population = currency_segment(salary_currency)
 
     cohort = find_cohort(

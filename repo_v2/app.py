@@ -113,6 +113,23 @@ def city_options(_observations):
     return sorted({o.city for o in _observations if o.city})
 
 
+@st.cache_data(show_spinner=False)
+def experience_breakdown(_observations, job_title):
+    """How many IN-based observations exist per experience level for this
+    title (or its role family, if recognized) — the same pool the cohort
+    engine draws from before applying currency/city. Shown next to the
+    Experience picker so a thin cohort at your specific level is visible
+    *before* you submit, not just as an "Insufficient" result after."""
+    title_norm = job_title.strip().lower()
+    family = role_family(job_title)
+    if family is not None:
+        pool = [o for o in _observations if role_family(o.job_title_raw) == family and o.employee_residence == "IN"]
+    else:
+        pool = [o for o in _observations if o.job_title_raw.strip().lower() == title_norm and o.employee_residence == "IN"]
+    counts = Counter(o.experience_level for o in pool)
+    return counts, len(pool), family
+
+
 def format_inr(usd_value: float) -> str:
     """Convert a USD figure back to INR and format with Indian digit
     grouping (e.g. 12,50,000), for display to an India-based audience."""
@@ -429,7 +446,8 @@ with role_col1:
         help="Many similar titles - e.g. SDE, SDE 1/2, Software Development "
              "Engineer, Backend Developer - are really the same role family. "
              "Pick a category to see just that family's titles instead of "
-             "all 300+ at once.",
+             "all 300+ at once. The count shown is across ALL experience "
+             "levels combined — your specific level will usually have fewer.",
     )
 with role_col2:
     if category == "Search all titles":
@@ -443,6 +461,35 @@ if title_choice == "Type my own…":
 else:
     job_title = title_choice
 
+EXP_ORDER = ["EN", "MI", "SE"]  # Executive dropped from display — not a band this tool's audience falls into
+
+if job_title.strip():
+    exp_counts, total_n, matched_family = experience_breakdown(observations, job_title)
+    if total_n > 0:
+        chips = "".join(
+            f'<span style="margin-right:1.1rem;">'
+            f'<b style="color:{INK};">{EXPERIENCE_LABELS[lvl]}</b>'
+            f' <span style="color:{MOSS if exp_counts.get(lvl,0) >= 10 else (MARIGOLD if exp_counts.get(lvl,0) >= 3 else RUST)};">'
+            f'{exp_counts.get(lvl, 0)}</span></span>'
+            for lvl in EXP_ORDER
+        )
+        chips += (
+            f'<span style="margin-right:1.1rem;">'
+            f'<b style="color:{INK};">Any (pooled)</b>'
+            f' <span style="color:{MOSS if total_n >= 10 else (MARIGOLD if total_n >= 3 else RUST)};">{total_n}</span></span>'
+        )
+        family_note = f' (grouped under "{matched_family}")' if matched_family else ""
+        st.markdown(
+            f'''
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:{SLATE};
+                        border-left:2.5px solid {MARIGOLD}; padding:0.4rem 0 0.4rem 0.7rem; margin:0.7rem 0 1.1rem 0;">
+                Comparable observations by experience{family_note}: {chips}
+                <span style="color:{SLATE};">— pick a level with 10+ for a confident number, or "Any / not sure" to pool every level.</span>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+
 with st.form("benchmark_form"):
     st.markdown(
         '<div class="ledger-tab" style="margin-top:0 !important;"><span class="idx">02</span>'
@@ -452,11 +499,20 @@ with st.form("benchmark_form"):
     col1, col2 = st.columns(2)
 
     with col1:
-        experience_level = st.selectbox(
+        EXP_UI_OPTIONS = ["EN", "MI", "SE", "ANY"]
+
+        def _format_exp(k):
+            return "Any / not sure" if k == "ANY" else EXPERIENCE_LABELS[k]
+
+        experience_choice = st.selectbox(
             "Experience",
-            options=list(EXPERIENCE_LABELS.keys()),
-            format_func=lambda k: EXPERIENCE_LABELS[k],
+            options=EXP_UI_OPTIONS,
+            format_func=_format_exp,
+            help="Pick 'Any / not sure' to compare against everyone at this "
+                 "title regardless of self-reported experience band — useful "
+                 "when a specific band is too thin on its own.",
         )
+        experience_level = None if experience_choice == "ANY" else experience_choice
 
     with col2:
         city_list = city_options(observations)
@@ -522,12 +578,13 @@ if submitted:
         else:
             pct = result.user_percentile
             b = result.bands
+            exp_display = EXPERIENCE_LABELS[experience_level] if experience_level else "Any experience level"
             st.markdown(
                 f'''
                 <div style="border:1.5px solid {INK}; border-radius:3px; padding:1.5rem 1.6rem 1.1rem 1.6rem;
                             background:{CARD}; box-shadow:4px 4px 0px 0px rgba(28,37,54,0.08);">
                     <div style="font-family:'IBM Plex Mono',monospace; font-size:0.82rem; color:{SLATE};">
-                        {job_title} · {EXPERIENCE_LABELS[experience_level]}{f' · {city}' if city else ''}
+                        {job_title} · {exp_display}{f' · {city}' if city else ''}
                         &nbsp;at&nbsp;<b style="color:{INK};">{format_inr(salary_in_usd)}</b>/yr
                     </div>
                 </div>

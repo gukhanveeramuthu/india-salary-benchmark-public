@@ -108,5 +108,45 @@ class TestCohortFallbackLadder(unittest.TestCase):
         self.assertEqual(len(result20.observations), 20)
 
 
+class TestExperienceLevelNoneMeansAnyBand(unittest.TestCase):
+    """experience_level=None pools every self-reported band together,
+    following the same Optional-filter pattern as city/country_residence.
+    Existing callers passing a real EN/MI/SE/EX code are unaffected -
+    every test above this class still passes unmodified."""
+
+    def test_none_pools_all_bands_at_level1(self):
+        obs = (
+            [make_obs("Analyst", "EN", "INR") for _ in range(10)]
+            + [make_obs("Analyst", "MI", "INR") for _ in range(4)]
+            + [make_obs("Analyst", "SE", "INR") for _ in range(2)]
+        )
+        result = find_cohort(obs, "Analyst", None, "INR_domestic")
+        self.assertEqual(result.level, 1)  # exact title, exact currency, any band
+        self.assertEqual(len(result.observations), 16)
+
+    def test_none_still_broadens_by_family_when_title_itself_is_thin(self):
+        # "BI Analyst" and "Data Analyst" share a role family in
+        # taxonomy.py. Querying for "Data Analyst" should find nothing
+        # at level 1/2 (exact title), then broaden to the family at
+        # level 3, pooling every band since experience_level=None.
+        obs = (
+            [make_obs("BI Analyst", "EN", "INR") for _ in range(3)]
+            + [make_obs("BI Analyst", "SE", "INR") for _ in range(3)]
+        )
+        result = find_cohort(obs, "Data Analyst", None, "INR_domestic")
+        self.assertEqual(result.level, 3)
+        self.assertEqual(len(result.observations), 6)
+
+    def test_real_experience_code_still_matches_exactly_with_none_present(self):
+        # A real code alongside None-eligible data should still only match
+        # its own band - None is opt-in, not a silent default.
+        obs = (
+            [make_obs("Analyst", "EN", "INR") for _ in range(10)]
+            + [make_obs("Analyst", "MI", "INR") for _ in range(4)]
+        )
+        result = find_cohort(obs, "Analyst", "MI", "INR_domestic")
+        self.assertEqual(len(result.observations), 4)
+
+
 if __name__ == "__main__":
     unittest.main()

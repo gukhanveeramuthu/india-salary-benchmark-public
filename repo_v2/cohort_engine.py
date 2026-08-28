@@ -5,6 +5,15 @@ Each level relaxes exactly one constraint from the level before it, and
 names what it relaxed - so a result can always say *why* the cohort is
 what it is, not just what it is.
 
+`experience_level` is Optional, following the same pattern as `city` and
+`country_residence` below: pass a real code (EN/MI/SE/EX) to match that
+band exactly, or None to mean "any experience level" - useful when a
+title's thin at one specific band but has a healthy population once
+every band is pooled together. Passing None does not change which
+level of the ladder is reached; it changes what "exact experience"
+means at every level, the same way passing no `city` changes what
+"same city" means without changing the ladder's shape.
+
 Base ladder (used whenever no city is requested, or city can't help):
 
   Level 1: exact title, exact experience level, exact pay population
@@ -60,10 +69,16 @@ def _mixed_currency(observations: List[SalaryObservation]) -> bool:
     return len({o.pay_population for o in observations}) > 1
 
 
+def _exp_ok(obs_level: str, experience_level: Optional[str]) -> bool:
+    """True if `experience_level` isn't constrained (None -> any band) or
+    the observation's own band matches it exactly."""
+    return experience_level is None or obs_level == experience_level
+
+
 def _base_ladder(
     country_filtered: List[SalaryObservation],
     job_title: str,
-    experience_level: str,
+    experience_level: Optional[str],
     pay_population: str,
     country_residence: Optional[str],
     level_offset: int,
@@ -72,14 +87,17 @@ def _base_ladder(
     """The original 5-level ladder, unaware of city, with level numbers
     shifted by `level_offset` (0 when called directly with no city
     requested; 1 when a city was requested but its dedicated top rung
-    came up empty, so we're falling back to the full country)."""
+    came up empty, so we're falling back to the full country).
+
+    `experience_level=None` means "any band" - see module docstring."""
     title_norm = job_title.strip().lower()
+    exp_label = experience_level if experience_level is not None else "any experience"
 
     # Level (1 + offset): exact title, exact experience, exact pay population.
     level1 = [
         o for o in country_filtered
         if o.job_title_raw.strip().lower() == title_norm
-        and o.experience_level == experience_level
+        and _exp_ok(o.experience_level, experience_level)
         and o.pay_population == pay_population
     ]
     if level1:
@@ -87,7 +105,7 @@ def _base_ladder(
             level=1 + level_offset,
             observations=level1,
             mixed_currency_warning=False,
-            description=f'"{job_title}" \u00b7 {experience_level} \u00b7 {pay_population}'
+            description=f'"{job_title}" \u00b7 {exp_label} \u00b7 {pay_population}'
                         + (f" \u00b7 {country_residence}" if country_residence else "")
                         + city_fallback_note,
         )
@@ -96,14 +114,14 @@ def _base_ladder(
     level2 = [
         o for o in country_filtered
         if o.job_title_raw.strip().lower() == title_norm
-        and o.experience_level == experience_level
+        and _exp_ok(o.experience_level, experience_level)
     ]
     if level2:
         return CohortResult(
             level=2 + level_offset,
             observations=level2,
             mixed_currency_warning=_mixed_currency(level2),
-            description=f'"{job_title}" \u00b7 {experience_level} \u00b7 currency requirement relaxed'
+            description=f'"{job_title}" \u00b7 {exp_label} \u00b7 currency requirement relaxed'
                         + (f" \u00b7 {country_residence}" if country_residence else "")
                         + city_fallback_note,
         )
@@ -115,7 +133,7 @@ def _base_ladder(
         level3 = [
             o for o in country_filtered
             if role_family(o.job_title_raw) == family
-            and o.experience_level == experience_level
+            and _exp_ok(o.experience_level, experience_level)
         ]
     if level3:
         return CohortResult(
@@ -123,7 +141,7 @@ def _base_ladder(
             observations=level3,
             mixed_currency_warning=_mixed_currency(level3),
             description=f'"{job_title}" not found directly \u2014 broadened to the '
-                        f'"{family}" role family \u00b7 {experience_level}'
+                        f'"{family}" role family \u00b7 {exp_label}'
                         + (f" \u00b7 {country_residence}" if country_residence else "")
                         + city_fallback_note,
         )
@@ -139,6 +157,10 @@ def _base_ladder(
     # role_family() includes the title itself as a family member (see
     # taxonomy.py's self-reference), so this returns identical results to
     # the old exact-title-only check - existing behaviour is preserved.
+    # When experience_level is already None, this level is reachable only
+    # if level 3 also came up empty (i.e. the family itself is thin), so
+    # it isn't a no-op even though the experience constraint was already
+    # dropped upstream.
     if family is not None:
         level4 = [
             o for o in country_filtered
@@ -155,7 +177,7 @@ def _base_ladder(
             observations=level4,
             mixed_currency_warning=_mixed_currency(level4),
             description=f'"{job_title}" \u00b7 experience-level requirement dropped '
-                        f'(insufficient data at {experience_level})'
+                        f'(insufficient data at {exp_label})'
                         + (f" \u00b7 {country_residence}" if country_residence else "")
                         + city_fallback_note,
         )
@@ -174,7 +196,7 @@ def _base_ladder(
 def find_cohort(
     observations: List[SalaryObservation],
     job_title: str,
-    experience_level: str,
+    experience_level: Optional[str],
     pay_population: str,
     country_residence: Optional[str] = None,
     city: Optional[str] = None,
@@ -185,11 +207,16 @@ def find_cohort(
     an unrecognized city, or an empty dataset are all valid inputs that
     resolve to an empty cohort rather than crashing.
 
+    `experience_level` may be None to mean "any band" (see module
+    docstring) - existing callers passing a real EN/MI/SE/EX code are
+    unaffected.
+
     `city` is optional. Omit it (or pass None) to get the original
     5-level ladder, unchanged. Pass it to additionally try a
     city-specific cohort first, ahead of every other relaxation.
     """
     country_filtered = [o for o in observations if _country_ok(o, country_residence)]
+    exp_label = experience_level if experience_level is not None else "any experience"
 
     if city is not None and city.strip():
         city_norm = city.strip().lower()
@@ -201,7 +228,7 @@ def find_cohort(
         city_level1 = [
             o for o in city_filtered
             if o.job_title_raw.strip().lower() == title_norm
-            and o.experience_level == experience_level
+            and _exp_ok(o.experience_level, experience_level)
             and o.pay_population == pay_population
         ]
         if city_level1:
@@ -209,7 +236,7 @@ def find_cohort(
                 level=1,
                 observations=city_level1,
                 mixed_currency_warning=False,
-                description=f'"{job_title}" \u00b7 {experience_level} \u00b7 {pay_population} '
+                description=f'"{job_title}" \u00b7 {exp_label} \u00b7 {pay_population} '
                             f'\u00b7 {city.strip()}',
             )
         # No city-specific match - fall back to the full country-wide
