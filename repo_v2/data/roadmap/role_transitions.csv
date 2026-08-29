@@ -1,0 +1,120 @@
+source_role,target_role,transition_type,confidence_tier,india_context,skill_gap_notes
+AI Developer,Machine Learning Engineer,lateral,medium,global,Near-synonymous in India job postings; overlap is high.
+AI Developer,Data Scientist,lateral,medium,global,"MLOps, model deployment, distributed training."
+Backend Developer,Team Lead / Technical Lead,promotion,well-documented,global+india,Standard senior IC -> lead progression.
+Backend Developer,Full-Stack Developer,lateral,well-documented,global,"Add frontend skills (JS framework, HTML/CSS)."
+Backend Developer,Data Engineer,lateral,medium,global,ETL/pipeline overlap; add Spark/cloud data tooling.
+Backend Developer,DevOps Engineer,lateral,medium-well,global,"CI/CD, IaC, Kubernetes, cloud."
+Backend Developer,Cloud Infrastructure Engineer,lateral,medium,global,Cloud platform depth (AWS/Azure/GCP).
+Business Analyst,Product Manager,lateral,well-documented,india+global,"Flagship transition, 6+ sources incl. first-person account. Skill gap: strategy, market/competitor analysis, prioritization, customer empathy. Much more common at product/fintech/startup firms than IT-services firms (TCS/Infosys/Wipro)."
+Business Analyst,Product / Research Analyst,lateral,medium,global,Overlapping analytical skill set.
+Business Analyst,Data Analyst,lateral,medium,global,Add SQL/visualization depth.
+Business Intelligence Analyst,Data Scientist,lateral,medium-well,global,"Add Python/R, ML, statistics."
+Business Intelligence Analyst,Data Engineer,lateral,well-documented,global,"Add programming, pipeline tooling."
+Business Intelligence Analyst,Data Analyst,lateral,well-documented,global,Closely adjacent function.
+Business Intelligence Analyst,Business Analyst,lateral,medium,global,Overlapping analytical skill set.
+Cloud Infrastructure Engineer,DevOps Engineer,lateral,well-documented,global,Near-interchangeable; roles described as overlapping with focus shift.
+Cloud Infrastructure Engineer,Site Reliability Engineer,lateral,well-documented,global,"Add SLIs/SLOs, error budgets, observability, incident management."
+Data Analyst,Data Scientist,lateral,well-documented,global,"Flagship transition, 5+ sources. Takes 6mo-2yr; skill gap: advanced Python/R, ML, statistics, experimental design."
+Data Analyst,Business Analyst,lateral,medium,global,Overlapping analytical skill set.
+Data Analyst,Product Manager,lateral,medium,global,Via product/program analyst feeder path.
+Data Analyst,Data Engineer,lateral,medium,global,"Add programming, pipeline/ETL tooling."
+Data Analyst,Business Intelligence Analyst,lateral,medium,global,Closely adjacent function.
+Data Architect,Data Engineer,lateral,medium,global,Frequently the reverse direction (DE -> DA is more common).
+Data Architect,Technical Architect,lateral,medium,global,Broader architecture scope.
+Data Engineer,Machine Learning Engineer,lateral,well-documented,global,"Add ML frameworks, modeling."
+Data Engineer,Data Scientist,lateral,well-documented,global,"Add statistics, modeling, experimentation."
+Data Engineer,Data Architect,promotion,medium,global,Senior/principal track.
+Data Engineer,Database Administrator (DBA),lateral,medium,global,Reverse of the well-documented DBA->DE pair.
+Data Engineer,Cloud Infrastructure Engineer,lateral,medium,global,Infra/pipeline overlap.
+Data Engineer,Engineering Manager,promotion,thin,global,Data engineering leadership track; thinner sourcing.
+Data Scientist,Machine Learning Engineer,lateral,well-documented,global,"Add software-engineering rigor, deployment."
+Data Scientist,Data Engineer,lateral,medium,global,Add pipeline/infra engineering.
+Data Scientist,Product Manager,lateral,medium,global,Data/AI product roles.
+Database Administrator (DBA),Data Engineer,lateral,well-documented,global,"Flagship pair, 4+ sources. Skill gap: Python/Java/Scala, ETL, Spark, cloud; SQL is the bridge."
+Database Administrator (DBA),Data Scientist,lateral,medium,global,Via SQL -> Python/statistics.
+Database Administrator (DBA),Data Architect,promotion,medium,global,Senior track.
+DevOps Engineer,Site Reliability Engineer,lateral,well-documented,global,"Near-interchangeable, focus shift toward reliability/SLOs."
+DevOps Engineer,Cloud Infrastructure Engineer,lateral,well-documented,global,Near-interchangeable.
+DevOps Engineer,Engineering Manager,promotion,medium,global,Via DevOps Lead/Platform Lead.
+DevOps Engineer,Technical Architect,promotion,medium,global,Cloud/platform architecture track.
+Embedded Developer,Software Developer,lateral,medium,global,General software development.
+Embedded Developer,Technical Architect,promotion,medium-well,global,Embedded systems architect track.
+Embedded Developer,Team Lead / Technical Lead,promotion,medium-well,global,Standard senior IC -> lead progression.
+Embedded Developer,IT / Technology Leadership (CTO/VP),promotion,thin,global,Long-horizon technical leadership track.
+Engineering Manager,IT / Technology Leadership (CTO/VP),promotion,well-documented,global+india,Standard people-management track apex.
+Engineering Manager,Technical Architect,lateral,thin,global,Rare reverse to IC track.
+Engineering Manager,Project / Program Manager (IT),lateral,thin,global,Delivery-focused pivot.
+Frontend Developer,Full-Stack Developer,lateral,well-documented,global,"Add server-side language, databases, APIs."
+Frontend Developer,Graphic / Web Designer,lateral,well-documented,global,"Design thinking, user research, Figma; multiple first-person accounts."
+Frontend Developer,Mobile Developer,lateral,medium,global,Add mobile framework depth.
+Frontend Developer,Team Lead / Technical Lead,promotion,medium-well,global,Standard senior IC -> lead progression.
+Full-Stack Developer,Team Lead / Technical Lead,promotion,well-documented,global,Standard senior IC -> lead progression.
+Full-Stack Developer,Backend Developer,lateral,medium,global,Specialization narrowing.
+Full-Stack Developer,Frontend Developer,lateral,medium,global,Specialization narrowing.
+Full-Stack Developer,DevOps Engineer,lateral,medium,global,"CI/CD, IaC, cloud."
+Full-Stack Developer,Product Manager,lateral,medium,global,More common at startups.
+Graphic / Web Designer,Frontend Developer,lateral,medium,global,Add HTML/CSS/JS; first-person accounts document this direction too.
+IT / Technical Content Developer,Technical Writer,lateral,medium,global,Near-overlap in function.
+IT / Technical Content Developer,Business Analyst,lateral,thin,global,Single-source (ClickHelp).
+IT / Technical Content Developer,Product Manager,lateral,thin,global,Thin sourcing.
+Machine Learning Engineer,Data Scientist,lateral,well-documented,global,Overlapping core skill set.
+Machine Learning Engineer,Data Engineer,lateral,medium,global,Infra/pipeline overlap.
+Machine Learning Engineer,AI Developer,lateral,medium,global,Near-synonymous in India postings.
+Mobile Developer,Full-Stack Developer,lateral,medium,global,Add backend/web breadth.
+Mobile Developer,Frontend Developer,lateral,medium,global,Web UI overlap.
+Mobile Developer,Team Lead / Technical Lead,promotion,medium,global,Standard senior IC -> lead progression.
+Network Administrator,DevOps Engineer,lateral,well-documented,global,"Add Linux/scripting depth, CI/CD, cloud, IaC."
+Network Administrator,System Security / Security Analyst,lateral,well-documented,global,Network security specialization.
+Network Administrator,System Administrator,lateral,medium,global,Closely adjacent infra function.
+Network Administrator,IT / Technology Leadership (CTO/VP),promotion,medium,global,Via Network Architect -> IT infra leadership/Director IT/CIO.
+Product / Research Analyst,Product Manager,lateral,medium,global,Classic APM/product-analyst feeder role.
+Product / Research Analyst,Data Analyst,lateral,medium,global,Overlapping analytical skill set.
+Product / Research Analyst,Business Analyst,lateral,thin,global,Thin sourcing.
+Product Manager,Project / Program Manager (IT),lateral,medium,global,Bidirectional overlap with program management.
+Project / Program Manager (IT),Product Manager,lateral,well-documented,global,"Well-documented, incl. first-person account. Skill gap: product strategy/vision vs. execution."
+Site Reliability Engineer,DevOps Engineer,lateral,well-documented,global,Near-interchangeable.
+Site Reliability Engineer,Cloud Infrastructure Engineer,lateral,well-documented,global,Near-interchangeable.
+Site Reliability Engineer,Engineering Manager,promotion,medium,global,SRE Manager / infra leadership track.
+Software Developer,Team Lead / Technical Lead,promotion,well-documented,global+india,"Flagship progression, 5+ sources. India services firms use formal internal ladders (e.g. Infosys JL1-JL8) before reaching an equivalent tier."
+Software Developer,Full-Stack Developer,lateral,medium-well,global,Specialization broadening.
+Software Developer,Backend Developer,lateral,medium,global,Specialization narrowing.
+Software Developer,Frontend Developer,lateral,medium,global,Specialization narrowing.
+Software Developer,DevOps Engineer,lateral,medium-well,global,"CI/CD, IaC, cloud."
+Software Developer,Data Engineer,lateral,medium,global,Pipeline/ETL tooling.
+Software Developer,Testing Engineer / QA,lateral,medium,global,Both directions documented to some degree.
+Software Developer,Product Manager,lateral,medium,global,More common at product firms/startups than IT-services firms.
+Software Developer,Machine Learning Engineer,lateral,medium,global,"Add ML frameworks, modeling."
+System Administrator,DevOps Engineer,lateral,well-documented,global,"Flagship pair, 6+ sources. Skill gap: a programming language, Git, CI/CD, containers, IaC, cloud. Sources cite 25-40% salary uplift."
+System Administrator,Cloud Infrastructure Engineer,lateral,medium-well,global,Cloud platform depth.
+System Administrator,Site Reliability Engineer,lateral,medium,global,Add SRE practices.
+System Administrator,Network Administrator,lateral,medium,global,Closely adjacent infra function.
+System Analyst,Business Analyst,lateral,medium,global+india,Roles overlap heavily at India services firms.
+System Analyst,Technical Architect,lateral,medium,global,Solutions/technical architecture track.
+System Analyst,Software Developer,lateral,medium,global,Hands-on technical pivot.
+System Analyst,Testing Engineer / QA,lateral,medium,global,Adjacent technical function.
+System Analyst,Engineering Manager,promotion,medium,global,O*NET lists 'Computer & Information Systems Managers' as related; mapped to nearest taxonomy equivalent.
+System Security / Security Analyst,System Administrator,lateral,thin,global,Reverse direction of the more common Sysadmin/NetAdmin -> Security move.
+System Security / Security Analyst,DevOps Engineer,lateral,medium,global,DevSecOps overlap.
+System Security / Security Analyst,Network Administrator,lateral,thin,global,Closely adjacent infra function.
+Team Lead / Technical Lead,Technical Architect,promotion,well-documented,global+india,"IC-track fork, well-documented."
+Team Lead / Technical Lead,Engineering Manager,promotion,well-documented,global+india,"People-track fork, well-documented."
+Team Lead / Technical Lead,Product Manager,lateral,thin,global,Thin sourcing.
+Team Lead / Technical Lead,Project / Program Manager (IT),lateral,thin,global,Thin sourcing.
+Technical Architect,IT / Technology Leadership (CTO/VP),promotion,well-documented,global+india,Technical-track apex ('the technical one leads to CTO').
+Technical Architect,Engineering Manager,lateral,medium,global,Cross to people-management track.
+Technical Support Engineer,Software Developer,lateral,medium,global,Commonly attempted but non-trivial in India; TeamBlind threads describe it as slow/difficult.
+Technical Support Engineer,System Administrator,lateral,medium,global,Adjacent infra function.
+Technical Support Engineer,DevOps Engineer,lateral,medium,global,Adjacent infra function.
+Technical Support Engineer,Testing Engineer / QA,lateral,medium,global,Adjacent technical function.
+Technical Support Engineer,Product Manager,lateral,thin,global,First-person accounts only.
+Technical Writer,IT / Technical Content Developer,lateral,medium,global,Near-overlap in function.
+Technical Writer,Business Analyst,lateral,medium,global,Described as a 'natural transition' by one source.
+Technical Writer,Product Manager,lateral,medium,global,Documented but explicitly noted as 'not incredibly common'.
+Testing Engineer / QA,Software Developer,lateral,medium-well,global,"Via SDET/automation path; skill gap: programming, test frameworks, APIs, CI/CD."
+Testing Engineer / QA,DevOps Engineer,lateral,medium,global,QA-focused DevOps.
+Testing Engineer / QA,Site Reliability Engineer,lateral,thin,global,Thin sourcing.
+Webmaster,Frontend Developer,lateral,thin,global,"Thin sourcing, legacy/declining role family."
+Webmaster,Full-Stack Developer,lateral,thin,global,Thin sourcing.
+Webmaster,System Administrator,lateral,thin,global,Thin sourcing.
+IT / Technology Leadership (CTO/VP),,terminal,,,Terminal node in current taxonomy -- no onward role-family transitions documented; typically reached FROM Engineering Manager or Technical Architect.

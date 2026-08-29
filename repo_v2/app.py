@@ -18,6 +18,10 @@ from benchmark import run_benchmark
 from confidence_tiers import INSUFFICIENT, LOW, MODERATE, HIGH
 from data_loader import load_dataset
 from taxonomy import ROLE_FAMILIES, role_family
+from roadmap_composer import load_transitions, compose_roadmap
+from skill_gap import load_skill_profiles
+
+ROADMAP_DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "roadmap")
 
 # FRED H.10 / AEXINUS annual-average USD/INR rate, most recent period in
 # the dataset (see data/README.md for the full cited table by year).
@@ -40,12 +44,35 @@ CONFIDENCE_INFO = {
     INSUFFICIENT: (INK, "Insufficient", "Fewer than 10 observations — no number is shown."),
 }
 
+# Transition confidence tiers (role_transitions.csv) are a separate, coarser
+# rating from the salary CONFIDENCE_INFO above - they describe how well
+# documented a career move is across sources, not sample size.
+TRANSITION_TIER_INFO = {
+    "well-documented": (MOSS, "Well documented", "Backed by multiple independent sources."),
+    "medium-well": (MARIGOLD, "Fairly documented", "Some corroborating evidence across sources."),
+    "medium": (MARIGOLD, "Some evidence", "Documented, but from limited sources."),
+    "thin": (RUST, "Thin evidence", "Only lightly documented — treat as a hypothesis."),
+}
+
 st.set_page_config(page_title="India Salary Benchmark", page_icon="📏", layout="centered")
 
 
 @st.cache_data(show_spinner="Loading dataset…")
 def load_data():
     return load_dataset()
+
+
+@st.cache_data(show_spinner=False)
+def load_roadmap_data():
+    """Loads the transitions + skills datasets that power the roadmap
+    section. These carry no personal salary data, so - unlike the salary
+    CSV - they ship inside this public repo rather than the private one."""
+    transitions = load_transitions(os.path.join(ROADMAP_DATA_DIR, "role_transitions.csv"))
+    profiles = load_skill_profiles(
+        os.path.join(ROADMAP_DATA_DIR, "unified_skills_detail_base.csv"),
+        os.path.join(ROADMAP_DATA_DIR, "unified_skills_by_role_base.csv"),
+    )
+    return transitions, profiles
 
 
 @st.cache_data(show_spinner=False)
@@ -214,6 +241,125 @@ def render_ruler(p10, p25, p50, p75, p90, user_pct, fmt_short):
     </svg>
     """
     return svg
+
+
+def render_skill_chips(ranked_skills, highlight_set=None, highlight_label=""):
+    """Renders (skill, mention_count) pairs as ledger-style chips. If
+    highlight_set is given, skills in it are drawn in marigold/ink (the
+    "you need this" state) and everything else in slate/paper (already
+    covered or not personally assessed)."""
+    if not ranked_skills:
+        return '<div style="color:#5B6472; font-size:0.85rem;">No skill data for this role.</div>'
+    chips = []
+    for skill, count in ranked_skills:
+        is_gap = highlight_set is not None and skill in highlight_set
+        bg = MARIGOLD if is_gap else CARD
+        border = INK
+        color = INK
+        chips.append(
+            f'<span style="display:inline-flex; align-items:baseline; gap:0.3rem; '
+            f'font-family:\'IBM Plex Mono\',monospace; font-size:0.78rem; font-weight:600; '
+            f'color:{color}; background:{bg}; border:1.5px solid {border}; border-radius:2px; '
+            f'padding:0.22rem 0.55rem; margin:0 0.35rem 0.35rem 0;">'
+            f'{skill}<span style="opacity:0.55; font-weight:500;">({count})</span></span>'
+        )
+    legend = ""
+    if highlight_set is not None:
+        legend = (
+            f'<div style="font-size:0.74rem; color:{SLATE}; margin-bottom:0.5rem;">'
+            f'<span style="background:{MARIGOLD}; border:1.5px solid {INK}; display:inline-block; '
+            f'width:9px; height:9px; margin-right:0.3rem;"></span>{highlight_label}</div>'
+        )
+    return legend + '<div style="line-height:2.1;">' + "".join(chips) + "</div>"
+
+
+def render_transition_card(phase_label, phase, is_current_skills_known):
+    """Renders one roadmap phase (medium_term or long_term) as a ledger card:
+    target role, transition confidence, skill gap, and salary (if any
+    salary source exists for that role - honestly noting when it doesn't)."""
+    if not phase.get("available"):
+        st.markdown(
+            f'''
+            <div style="border:1.5px dashed {INK}; border-radius:3px; padding:1.1rem 1.3rem; background:{CARD};">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem; font-weight:700;
+                            letter-spacing:0.06em; text-transform:uppercase; color:{RUST}; margin-bottom:0.4rem;">
+                    {phase_label} — no path on record</div>
+                <div style="color:{INK}; line-height:1.5;">{phase["reason"]}</div>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+        return
+
+    tier_color, tier_label, tier_blurb = TRANSITION_TIER_INFO.get(
+        phase["confidence_tier"], (SLATE, phase["confidence_tier"], "")
+    )
+    st.markdown(
+        f'''
+        <div style="border:1.5px solid {INK}; border-radius:3px; padding:1.4rem 1.5rem 1.1rem 1.5rem;
+                    background:{CARD}; box-shadow:4px 4px 0px 0px rgba(28,37,54,0.08); margin-bottom:0.9rem;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:{SLATE};
+                        text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.25rem;">{phase_label}</div>
+            <div style="font-family:'Zilla Slab',serif; font-size:1.5rem; font-weight:700; color:{INK};
+                        margin-bottom:0.5rem;">{phase["target_role"]}</div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.7rem;">
+                <span style="width:10px; height:10px; background:{tier_color}; border:1.5px solid {INK};
+                             display:inline-block; flex-shrink:0;"></span>
+                <span style="font-size:0.88rem; color:{INK};"><b>{tier_label}</b> — {tier_blurb}
+                    ({phase["transition_type"]}, {phase["india_context"]})</span>
+            </div>
+            <div style="color:{SLATE}; font-size:0.88rem; line-height:1.5; margin-bottom:0.6rem;">{phase["notes"]}</div>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+    skills = phase["skills"]
+    if skills.get("available"):
+        st.markdown(f'<div style="font-weight:600; color:{INK}; margin-bottom:0.4rem;">Skills this role expects</div>', unsafe_allow_html=True)
+        if is_current_skills_known and skills.get("personal_gap") is not None:
+            gap_set = set(skills["personal_gap"])
+            st.markdown(
+                render_skill_chips(skills["target_top_skills"], gap_set, "Not in your listed skills"),
+                unsafe_allow_html=True,
+            )
+        else:
+            missing_set = set(skills["missing_from_current_role_market"])
+            st.markdown(
+                render_skill_chips(skills["target_top_skills"], missing_set,
+                                     "Not currently seen in your role's postings"),
+                unsafe_allow_html=True,
+            )
+        st.caption(
+            f"Based on {skills['current_role_n_sources']} source(s) for the current role and "
+            f"{skills['target_role_n_sources']} source(s) for the target role."
+        )
+    else:
+        st.caption(f"Skill data: {skills.get('reason', 'not available')}")
+
+    salary = phase["salary"]
+    st.markdown(f'<div style="font-weight:600; color:{INK}; margin:0.8rem 0 0.4rem 0;">Salary at this role</div>', unsafe_allow_html=True)
+    if not salary.get("available"):
+        st.caption(salary["reason"])
+    elif salary["bands"] is None:
+        tier_color, label, _ = CONFIDENCE_INFO[salary["confidence"]]
+        st.markdown(
+            f'<div style="color:{RUST}; font-size:0.88rem;">'
+            f'<b>{label}</b> — not enough comparable data (n={salary["provenance"]["n"]}) to show a range honestly.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        b = salary["bands"]
+        st.markdown(
+            f'<div style="overflow-x:auto; padding-bottom:0.3rem;">'
+            f'<div style="min-width:640px;">{render_ruler(b.p10, b.p25, b.p50, b.p75, b.p90, salary["user_percentile"], format_inr_short)}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        tier_color, label, _ = CONFIDENCE_INFO[salary["confidence"]]
+        st.caption(f"{label} confidence · n={salary['provenance']['n']} · {salary['salary_family_used']}")
+        for w in salary["warnings"]:
+            st.warning(w)
 
 
 try:
@@ -532,7 +678,20 @@ with st.form("benchmark_form"):
         help="Enter your gross annual salary in Indian Rupees.",
     )
 
-    submitted = st.form_submit_button("Benchmark My Salary", use_container_width=True, type="primary")
+    st.markdown(
+        '<div class="ledger-tab"><span class="idx">04</span>'
+        '<span class="label">Career roadmap (optional)</span><span class="rule"></span></div>',
+        unsafe_allow_html=True,
+    )
+    known_skills_raw = st.text_input(
+        "Skills you already have (comma-separated, optional)",
+        "",
+        help="Leave blank to see what the market expects for each role instead of a "
+             "personal gap. Fill it in for a gap computed against your own skill list, "
+             "e.g. \"SQL, Business Analysis, Excel, Stakeholder Management\".",
+    )
+
+    submitted = st.form_submit_button("Benchmark My Salary & Build My Roadmap", use_container_width=True, type="primary")
 
 if submitted:
     if not job_title.strip():
@@ -634,6 +793,60 @@ if submitted:
                 "step it landed on for this query."
             )
 
+        # --- career roadmap ---
+        st.markdown(
+            '<div class="ledger-tab"><span class="idx">→</span>'
+            '<span class="label">Your career roadmap</span><span class="rule"></span></div>',
+            unsafe_allow_html=True,
+        )
+        try:
+            transitions, skill_profiles = load_roadmap_data()
+            known_skills = [s.strip() for s in known_skills_raw.split(",") if s.strip()] or None
+            roadmap = compose_roadmap(
+                raw_job_title=job_title,
+                experience_level=experience_level,
+                salary_currency="INR",
+                user_salary_in_usd=salary_in_usd,
+                observations=observations,
+                transitions=transitions,
+                skill_profiles=skill_profiles,
+                city=city,
+                user_known_skills=known_skills,
+            )
+        except Exception as e:
+            roadmap = None
+            st.error("Couldn't build a roadmap for this title.")
+            st.exception(e)
+
+        if roadmap is not None:
+            if roadmap.get("error"):
+                st.info(roadmap["error"])
+            else:
+                if roadmap["near_term"]:
+                    nt = roadmap["near_term"]
+                    st.markdown(
+                        f'<div style="font-weight:600; color:{INK}; margin-bottom:0.4rem;">'
+                        f'Near term — what "{nt["role"]}" postings currently ask for</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if known_skills is not None and nt["personal_gap"] is not None:
+                        st.markdown(
+                            render_skill_chips(nt["market_top_skills"], set(nt["personal_gap"]),
+                                                 "Not in your listed skills"),
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(render_skill_chips(nt["market_top_skills"]), unsafe_allow_html=True)
+                    st.caption(f"Based on {nt['n_sources']} source(s) for this role family.")
+
+                st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
+                if roadmap["medium_term"]:
+                    render_transition_card("Medium term (~12–18 months)", roadmap["medium_term"],
+                                             known_skills is not None)
+                if roadmap["long_term"]:
+                    render_transition_card("Long term (further ahead)", roadmap["long_term"],
+                                             known_skills is not None)
+
 with st.sidebar:
     st.header("About")
     st.write(
@@ -655,9 +868,12 @@ with st.sidebar:
         "of the whole dataset."
     )
     st.write(
-        "**No career-improvement suggestions.** This tool only reports "
-        "where you currently stand, honestly, with a visible confidence "
-        "tier — nothing is fabricated to fill a data gap."
+        "**The career roadmap is data-derived, not AI-generated.** Target "
+        "roles come from a documented transitions dataset with a visible "
+        "confidence tier per move; skill gaps come from real job-posting "
+        "skill frequency, not a language model's guess. Where the salary "
+        "data doesn't cover a target role — common for leadership and "
+        "architect tracks — that's stated plainly instead of estimated."
     )
     st.header("Confidence tiers")
     for tier in (HIGH, MODERATE, LOW, INSUFFICIENT):
