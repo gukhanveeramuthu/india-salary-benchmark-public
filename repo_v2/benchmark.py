@@ -34,6 +34,7 @@ class BenchmarkResult:
     user_percentile: Optional[float]
     provenance: Dict
     warnings: List[str]
+    raw_salary_points: Optional[List[float]] = None
 
 
 def _provenance(cohort_observations: List[SalaryObservation]) -> Dict:
@@ -82,10 +83,18 @@ def run_benchmark(
 
     bands: Optional[PercentileBands] = None
     user_percentile: Optional[float] = None
+    raw_salary_points: Optional[List[float]] = None
     if confidence != INSUFFICIENT:
         cohort_salaries = [o.salary_in_usd for o in cohort.observations]
         bands = compute_bands(cohort_salaries)
         user_percentile = percentile_of_value(cohort_salaries, user_salary_in_usd)
+    elif n > 0:
+        # Too few observations to trust a computed percentile or range -
+        # but "too few to compute a statistic" isn't the same as "no
+        # information exists". Surface the literal figures found instead
+        # of hiding them: this makes no statistical claim (no band, no
+        # percentile), it's just what's actually in the dataset.
+        raw_salary_points = sorted(o.salary_in_usd for o in cohort.observations)
 
     warnings: List[str] = []
     if cohort.mixed_currency_warning:
@@ -98,4 +107,5 @@ def run_benchmark(
         user_percentile=user_percentile,
         provenance=_provenance(cohort.observations),
         warnings=warnings,
+        raw_salary_points=raw_salary_points,
     )

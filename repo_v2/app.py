@@ -332,23 +332,29 @@ def render_transition_card(phase_label, phase, is_current_skills_known):
             )
         st.caption(
             f"Based on {skills['current_role_n_sources']} source(s) for the current role and "
-            f"{skills['target_role_n_sources']} source(s) for the target role."
+            f"{skills['target_role_n_sources']} source(s) for the target role. Ranked by how much "
+            f"more common each skill is in this role than in the job market generally."
         )
     else:
         st.caption(f"Skill data: {skills.get('reason', 'not available')}")
 
+    # Salary is deliberately the quietest part of this card when it's thin -
+    # the skill gap and transition confidence above are the load-bearing
+    # content for roles the salary dataset doesn't cover well yet.
     salary = phase["salary"]
-    st.markdown(f'<div style="font-weight:600; color:{INK}; margin:0.8rem 0 0.4rem 0;">Salary at this role</div>', unsafe_allow_html=True)
     if not salary.get("available"):
-        st.caption(salary["reason"])
+        st.caption(f"💰 Salary: {salary['reason']}")
     elif salary["bands"] is None:
-        tier_color, label, _ = CONFIDENCE_INFO[salary["confidence"]]
-        st.markdown(
-            f'<div style="color:{RUST}; font-size:0.88rem;">'
-            f'<b>{label}</b> — not enough comparable data (n={salary["provenance"]["n"]}) to show a range honestly.</div>',
-            unsafe_allow_html=True,
-        )
+        if salary.get("raw_salary_points"):
+            points_str = " · ".join(format_inr_short(p) for p in salary["raw_salary_points"])
+            st.caption(
+                f"💰 Salary: too few observations ({len(salary['raw_salary_points'])}) for a reliable range — "
+                f"known figures on record: {points_str}"
+            )
+        else:
+            st.caption(f"💰 Salary: not enough comparable data (n={salary['provenance']['n']}) to show a range.")
     else:
+        st.markdown(f'<div style="font-weight:600; color:{INK}; margin:0.8rem 0 0.4rem 0;">Salary at this role</div>', unsafe_allow_html=True)
         b = salary["bands"]
         st.markdown(
             f'<div style="overflow-x:auto; padding-bottom:0.3rem;">'
@@ -717,23 +723,45 @@ if submitted:
 
         if result.bands is None:
             tier_color, label, _ = CONFIDENCE_INFO[result.confidence]
-            st.markdown(
-                f'''
-                <div style="border:1.5px dashed {INK}; border-radius:3px; padding:1.4rem 1.5rem;
-                            background:{CARD};">
-                    <div style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;
-                                font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
-                                color:{RUST}; margin-bottom:0.5rem;">Not enough data — the honest answer</div>
-                    <div style="color:{INK}; line-height:1.55;">
-                        There isn't a large enough peer group to show a percentile or salary range
-                        here. Showing a number anyway would be misleading, so nothing is shown
-                        instead. Try a broader city (or none), double-check the job title, or try
-                        a nearby experience level.
+            if result.raw_salary_points:
+                points_str = " · ".join(format_inr_short(p) for p in result.raw_salary_points)
+                st.markdown(
+                    f'''
+                    <div style="border:1.5px dashed {INK}; border-radius:3px; padding:1.4rem 1.5rem;
+                                background:{CARD};">
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;
+                                    font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+                                    color:{RUST}; margin-bottom:0.5rem;">Too few for a range — here's what's known</div>
+                        <div style="color:{INK}; line-height:1.55; margin-bottom:0.6rem;">
+                            Not enough observations ({len(result.raw_salary_points)}) to compute a reliable
+                            percentile or range. Rather than hide it, here are the actual salaries on record
+                            for this peer group — not a statistic, just the raw figures:
+                        </div>
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.05rem; font-weight:700; color:{INK};">
+                            {points_str}
+                        </div>
                     </div>
-                </div>
-                ''',
-                unsafe_allow_html=True,
-            )
+                    ''',
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f'''
+                    <div style="border:1.5px dashed {INK}; border-radius:3px; padding:1.4rem 1.5rem;
+                                background:{CARD};">
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;
+                                    font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+                                    color:{RUST}; margin-bottom:0.5rem;">Not enough data — the honest answer</div>
+                        <div style="color:{INK}; line-height:1.55;">
+                            There isn't a large enough peer group to show a percentile or salary range
+                            here. Showing a number anyway would be misleading, so nothing is shown
+                            instead. Try a broader city (or none), double-check the job title, or try
+                            a nearby experience level.
+                        </div>
+                    </div>
+                    ''',
+                    unsafe_allow_html=True,
+                )
         else:
             pct = result.user_percentile
             b = result.bands

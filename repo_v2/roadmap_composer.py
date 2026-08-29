@@ -96,6 +96,7 @@ def _salary_phase(
         "user_percentile": best_result.user_percentile,
         "provenance": best_result.provenance,
         "warnings": best_result.warnings,
+        "raw_salary_points": best_result.raw_salary_points,
     }
 
 
